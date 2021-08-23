@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<voicemail xmlns="http://www.innovaphone.com/xsd/voicemail6.xsd" _ver="VM-08-60053">
+===== Save Or Cancel Function =======================================================
+	<function define="SaveOrCancel">
+		<assign out="abortSave" value="false"/>
+        <event type="dtmf" block="false">
+            <pbx-getdtmfdigit out-dtmf="$dtmf" />
+            <switch var="$dtmf">
+                <case equal="2">
+                    <call name="Save"/>
+                    <assign out="abortSave" value="true"/>
+                </case>
+                <case equal="*">
+                    <assign out="abortSave" value="true"/>
+                    <store-get root="" name="de_cancel.$coder" out-url="$ctrl"/>
+                    <pbx-prompt url="$ctrl" barge-in="false"/>
+                </case>
+            </switch>
+        </event>
+        <while notcond="$abortSave">
+                <!--  Prompt Menueoptions -->
+            <store-get root="" name="de_save_2_cancel_star.$coder" out-url="$ctrl"/>
+            <pbx-prompt url="$ctrl" />
+            <if notcond="$abortSave">
+                    <!-- Silence. 4 Seconds -->
+                <store-get root="" name="silence.$coder" out-url="$ctrl" />
+                <pbx-prompt url="$ctrl" sec="4" repeat="true"/>
+            </if>
+        </while>
+	</function>
+	
+===== Save Function ================================================================
+	<function define="Save">
+        <!--<store-del root="" name="$file"/>-->
+        <store-ren root="" name="$tempsavefile" new-name="$savefile"/>
+        <store-get root="" name="de_message_saved.$coder" out-url="$ctrl" />
+        <pbx-prompt url="$ctrl" barge-in="false"/>
+    </function>
+
+
+===== Main Routine =================================================================
+	<function define="Main">
+	<license/>	
+	<if cond="$_fileName">
+		<assign out="$fileName" value="$_fileName"/>
+	</if>
+	<else>
+		<assign out="$fileName" value="RecordedMessage"/>
+	</else>
+	
+	<switch var="$_coder">
+		<case equal="g729">
+			<assign out="$coder" value="$_coder"/>
+		</case>
+		<case equal="g711a">
+			<assign out="$coder" value="$_coder"/>
+		</case>
+		<default>
+			<assign out="$coder" value="g711a"/>
+		</default>
+	</switch>
+	
+	<lib-strcat string="$fileName" string2="." out-string="$savefile"/>
+	<lib-strcat string="$savefile" string2="$coder" out-string="$savefile"/>
+	<lib-strcat string="temp" string2="$savefile" out-string="$tempsavefile"/>
+	
+	<event type="dtmf" block="false">
+			<event type="dtmf" block="false">
+            </event>
+            <pbx-getdtmfdigit out-dtmf="$dtmf" />
+            <switch var="$dtmf">
+                <case equal="1">
+					<store-get root="" name="de_please_speak_after_the_signal.$coder" out-url="$ctrl" />
+                    <pbx-prompt url="$ctrl" barge-in="false"/>
+					
+                    <store-get root="" name="de_press_key_to_end.$coder" out-url="$ctrl" />
+                    <pbx-prompt url="$ctrl" barge-in="false"/>
+
+                    <store-get root="" name="silence.$coder" out-url="$ctrl" />
+                    <pbx-prompt url="$ctrl" sec="1" barge-in="false"/>
+
+                    <store-get root="" name="beep.$coder" out-url="$ctrl" />
+                    <pbx-prompt url="$ctrl" />
+					
+					<store-get root="" name="$tempsavefile" out-url="$file"/>
+					<pbx-record url="$file"/>
+					
+					<store-get root="" name="de_your_input_is.$coder" out-url="$ctrl" />
+                    <pbx-prompt url="$ctrl" barge-in="false"/>
+                    <pbx-prompt url="$file"/>
+					
+					<call name="SaveOrCancel"/>
+					
+                </case>
+                <case equal="2">
+                    <store-get root="" name="$savefile" out-url="$file"/>
+                    <store-getstat root="" name="$savefile" out-error="$error"/>
+                    <if cond="$error">
+                        <store-get root="" name="de_not_available.$coder" out-url="$ctrl" />
+                        <pbx-prompt url="$ctrl" barge-in="false"/>
+                    </if>
+                    <else>
+						<store-get root="" name="$savefile" out-url="$ctrl" />
+                        <pbx-prompt url="$ctrl"/>
+                    </else>
+                </case>
+				<case equal="3">
+					<store-getstat root="" name="$savefile" out-error="$error"/>
+                    <if cond="$error">
+                        <store-get root="" name="de_not_available.$coder" out-url="$ctrl" />
+                        <pbx-prompt url="$ctrl" barge-in="false"/>
+                    </if>
+					<else>					
+						<store-del root="" name="$savefile"/>
+						<store-get root="" name="de_message_deleted.$coder" out-url="$ctrl"/>
+						<pbx-prompt url="$ctrl" />
+					</else>
+                </case>
+            </switch>
+        </event>	
+		
+		<while cond="true">
+            <!--  Prompt Menueoptions -->
+            <store-get root="" name="de_mainMenu.$coder" out-url="$menu"/>
+			<pbx-prompt url="$menu" />
+			
+			<store-get root="" name="silence.$coder" out-url="$ctrl" />
+            <pbx-prompt url="$ctrl" sec="4" repeat="true"/>
+        </while>
+
+	</function>
+</voicemail>
+
+<!-- Record an announcement by phone wiki-src/xml/phoneRec 1,0,2,0 (C) innovaphone AG 2010-2011 -->

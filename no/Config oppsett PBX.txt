@@ -1,0 +1,14 @@
+Record-NO.XML og talefiler lastes inn på CF-kort i ønsket mappe (eks /DRIVE/CF0/Record/*.* )
+
+VM-objekt etableres.
+Angi nummer, navn og følgende URL: Script
+
+http://127.0.0.1/DRIVE/CF0/Record/Record_NO.xml?$_coder=g711a&$_fileName=Announcement
+
+hvis opptak i G729 ønskes, bruk:
+http://127.0.0.1/DRIVE/CF0/Record/Record_NO.xml?$_coder=g729&$_fileName=Announcement
+
+Hvis annet filnavn ønskes, endre "Announcement" til noe annet.
+
+
+Se ellers Wiki
